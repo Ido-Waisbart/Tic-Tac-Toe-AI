@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using static GameManager;
 
 public class UIController : MonoBehaviour
@@ -12,6 +13,11 @@ public class UIController : MonoBehaviour
     private GameObject _currentGameMenuPanel;
     [SerializeField] TMP_Text _turnText;
     [SerializeField] TMP_Text _winText;
+    [SerializeField] protected Sprite spriteX;
+    [SerializeField] protected Sprite spriteO;
+    [SerializeField] protected Image[] tileImages;
+    [SerializeField] protected Color tileImageActiveColor;
+
 
     public const string PLAYER_TURN_STRING = "Player turn!";
     public const string AI_TURN_STRING = "AI turn!";
@@ -21,12 +27,23 @@ public class UIController : MonoBehaviour
     
     void Start()
     {
-        if(Instance is not null){
+        if(Instance != null){
             throw new NullReferenceException();
         }
         Instance = this;
 
         _currentGameMenuPanel = _gameStartPanel;
+        InitializeTilePositionDatas();
+    }
+
+    void InitializeTilePositionDatas(){
+        int index = 0;
+        foreach(Image tileImage in tileImages){
+            TilePositionData data = tileImage.GetComponent<TilePositionData>();
+            data.x = index % 3;
+            data.y = index / 3;
+            index++;
+        }
     }
 
     public void SetTurnText(bool isPlayerTurn){
@@ -58,8 +75,26 @@ public class UIController : MonoBehaviour
     // Enums are not displayed natively on button event parameters in the inspector.
     // public void OnBtn_PlayAgainstAI(GameManager.Difficulty difficulty){}
 
+    // Unity Event
     public void OnBtn_PlayAgainstAI(int difficulty){
         _currentGameMenuPanel.SetActive(false);
         GameManager.Instance.StartGame((GameManager.Difficulty)difficulty);
     }
+
+    // Unity Event
+    public void OnBtn_ChooseTile(TilePositionData tileData){
+        GameManager.Instance.PlayerMadeMove(tileData);
+        var tileImage = tileImages[tileData.IndexInGrid];
+        tileImage.sprite = spriteX;
+        tileImage.color = tileImageActiveColor;
+        tileImage.GetComponent<Button>().enabled = false;
+    }
+
+    /*public void OnAIChoseTile(TilePositionData tileData){
+        GameManager.Instance.AIMadeMove(tileData);
+        var tileImage = tileImages[tileData.IndexInGrid];
+        tileImage.sprite = spriteO;
+        tileImage.color = tileImageActiveColor;
+        tileImage.GetComponent<Button>().enabled = false;
+    }*/
 }
