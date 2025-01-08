@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour
     int vacantTiles = BOARD_EDGE_LENGTH * BOARD_EDGE_LENGTH;
     TileType lastPerformingPlayerTile;
     Vector2Int lastPerformedMove;
+    bool isPlayerX;  // Randomized in each round.
 
     public enum Difficulty
     {
@@ -62,8 +63,14 @@ public class GameManager : MonoBehaviour
         // aiLogic.Depth = (int)difficulty;
         board = new TileType[BOARD_EDGE_LENGTH, BOARD_EDGE_LENGTH];
         vacantTiles = BOARD_EDGE_LENGTH * BOARD_EDGE_LENGTH;
+        isPlayerX = UnityEngine.Random.Range(0, 2) == 0;
+        uiController.SetIsPlayerX(isPlayerX);
         uiController.ClearBoard();
         SetToPlayerTurn();
+    }
+
+    public GameState GetGameState(){
+        return gameState;
     }
 
     public void SetToPlayerTurn()
@@ -82,8 +89,6 @@ public class GameManager : MonoBehaviour
     }
 
     void CheckForGameOver(TileType lastPerformingPlayerTile, Vector2Int lastPerformedMove){
-        print("TODO: CheckForGameOver()");
-
         List<Vector2Int[]> linesToCheck = new List<Vector2Int[]>();
 
         bool isMoveOnFirstDiagonal = lastPerformedMove.x == lastPerformedMove.y;
@@ -120,7 +125,8 @@ public class GameManager : MonoBehaviour
             gameState = GameState.NoMoreMoves;
             return;
         }
-        gameState = GameState.WaitingForX;
+        gameState = lastPerformingPlayerTile == TileType.X ?
+            GameState.WaitingForX : GameState.WaitingForO;
     }
     
     public void PlayerMadeMove(TilePositionData xy){
@@ -147,7 +153,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1);
         // print("TODO: AI played: " + move.ToString());
         // board[move.x, move.y] = TileType.O;
-        //vacantTiles--;
+        // vacantTiles--;
         // CheckForGameOver(TileType.O, move);  // Updates gameState.
         switch (gameState)
         {

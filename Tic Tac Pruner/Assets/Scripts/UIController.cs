@@ -25,6 +25,8 @@ public class UIController : MonoBehaviour
     public const string WIN_STRING = "You won!";
     public const string LOSS_STRING = "You lost!";
     public const string TIE_STRING = "Tie!";
+
+    bool isPlayerX;
     
     void Start()
     {
@@ -45,6 +47,15 @@ public class UIController : MonoBehaviour
             data.y = index / 3;
             index++;
         }
+    }
+
+    // The game uses a trick to change the player to O, without actually changing the logic.
+    // If the player is O, then the images are changed, and the game state interpretation changes, ONLY.
+    // See: SetWinText()
+    //      OnBtn_ChooseTile()  (Under the hood, the player is X either way.)
+    //      OnAIChoseTile()     (Under the hood, the player is X either way.)
+    public void SetIsPlayerX(bool isPlayerX){
+        this.isPlayerX = isPlayerX;
     }
 
     public void SetTurnText(bool isPlayerTurn){
@@ -94,7 +105,7 @@ public class UIController : MonoBehaviour
     public void OnBtn_ChooseTile(TilePositionData tileData){
         GameManager.Instance.PlayerMadeMove(tileData);
         var tileImage = tileImages[tileData.IndexInGrid];
-        tileImage.sprite = spriteX;
+        tileImage.sprite = isPlayerX ? spriteX : spriteO;
         tileImage.color = tileImageActiveColor;
         tileImage.GetComponent<Button>().enabled = false;
     }
@@ -102,7 +113,7 @@ public class UIController : MonoBehaviour
     /*public void OnAIChoseTile(TilePositionData tileData){
         GameManager.Instance.AIMadeMove(tileData);
         var tileImage = tileImages[tileData.IndexInGrid];
-        tileImage.sprite = spriteO;
+        tileImage.sprite = isPlayerX ? spriteO : spriteX;
         tileImage.color = tileImageActiveColor;
         tileImage.GetComponent<Button>().enabled = false;
     }*/
