@@ -17,6 +17,7 @@ public class UIController : MonoBehaviour
     [SerializeField] protected Sprite spriteO;
     [SerializeField] protected Image[] tileImages;
     [SerializeField] protected Color tileImageActiveColor;
+    [SerializeField] protected Color tileImageClickableColor;
 
 
     public const string PLAYER_TURN_STRING = "Player turn!";
@@ -62,13 +63,21 @@ public class UIController : MonoBehaviour
                 _winText.text = TIE_STRING;
                 break;
             case GameState.VictoryX:
-                _winText.text = TIE_STRING;
+                _winText.text = WIN_STRING;
                 break;
             case GameState.VictoryO:
-                _winText.text = TIE_STRING;
+                _winText.text = LOSS_STRING;
                 break;
             default:
                 throw new ArgumentException("Unexpected game state on game over: " + gameState.ToString());
+        }
+    }
+
+    public void ClearBoard(){
+        foreach(var tileImage in tileImages){
+            tileImage.sprite = null;
+            tileImage.color = tileImageClickableColor;
+            tileImage.GetComponent<Button>().enabled = true;  // TODO OPTIONAL: There's probably more GetComponent()'s than needed, but this small project doesn't necessitate this fix.
         }
     }
 
