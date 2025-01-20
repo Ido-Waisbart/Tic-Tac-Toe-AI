@@ -73,10 +73,10 @@ public class UIController : MonoBehaviour
             case GameState.NoMoreMoves:
                 _winText.text = TIE_STRING;
                 break;
-            case GameState.VictoryX:
+            case GameState.VictoryPlayer:
                 _winText.text = WIN_STRING;
                 break;
-            case GameState.VictoryO:
+            case GameState.VictoryAI:
                 _winText.text = LOSS_STRING;
                 break;
             default:
@@ -96,10 +96,17 @@ public class UIController : MonoBehaviour
     // public void OnBtn_PlayAgainstAI(GameManager.Difficulty difficulty){}
 
     // Unity Event
-    public void OnBtn_PlayAgainstAI(int difficulty){
+    public void OnBtn_PlayAgainstAI(string difficultyString){
+        _currentGameMenuPanel.SetActive(false);
+        GameManager.Difficulty difficulty = (GameManager.Difficulty)System.Enum.Parse( typeof(GameManager.Difficulty), difficultyString);
+        GameManager.Instance.StartGame(difficulty);
+    }
+
+    // Unity Event
+    /*public void OnBtn_PlayAgainstAI(int difficulty){
         _currentGameMenuPanel.SetActive(false);
         GameManager.Instance.StartGame((GameManager.Difficulty)difficulty);
-    }
+    }*/
 
     // Unity Event
     public void OnBtn_ChooseTile(TilePositionData tileData){
@@ -110,11 +117,10 @@ public class UIController : MonoBehaviour
         tileImage.GetComponent<Button>().enabled = false;
     }
 
-    /*public void OnAIChoseTile(TilePositionData tileData){
-        GameManager.Instance.AIMadeMove(tileData);
-        var tileImage = tileImages[tileData.IndexInGrid];
+    public void OnAIChoseTile(Vector2Int tileIndices){
+        var tileImage = tileImages[tileIndices.x + tileIndices.y * 3];
         tileImage.sprite = isPlayerX ? spriteO : spriteX;
         tileImage.color = tileImageActiveColor;
         tileImage.GetComponent<Button>().enabled = false;
-    }*/
+    }
 }

@@ -13,17 +13,17 @@ public class GameManager : MonoBehaviour
     public enum TileType
     {
         Empty,
-        X,
-        O
+        Player,
+        AI
     }
 
     public enum GameState
     {
-        WaitingForX,
-        WaitingForO,
+        WaitingForPlayer,
+        WaitingForAI,
         NoMoreMoves,
-        VictoryX,
-        VictoryO
+        VictoryPlayer,
+        VictoryAI
     }
 
     [SerializeField] protected AILogic aiLogic;
@@ -40,9 +40,10 @@ public class GameManager : MonoBehaviour
 
     public enum Difficulty
     {
-        Easy = 1,
-        Medium,
-        Hard,
+        // 1 is practically making random choices.
+        Easy = 2,
+        Medium = 4,
+        Hard = 6,
     }
 
     private void Start()
@@ -60,10 +61,11 @@ public class GameManager : MonoBehaviour
 
     public void StartGame(Difficulty difficulty)
     {
-        // aiLogic.Depth = (int)difficulty;
+        isPlayerX = UnityEngine.Random.Range(0, 2) == 0;
+        aiLogic.Depth = (int)difficulty;
+        aiLogic.IsPlayerX = isPlayerX;
         board = new TileType[BOARD_EDGE_LENGTH, BOARD_EDGE_LENGTH];
         vacantTiles = BOARD_EDGE_LENGTH * BOARD_EDGE_LENGTH;
-        isPlayerX = UnityEngine.Random.Range(0, 2) == 0;
         uiController.SetIsPlayerX(isPlayerX);
         uiController.ClearBoard();
         SetToPlayerTurn();
@@ -77,14 +79,14 @@ public class GameManager : MonoBehaviour
     {
         uiController.SetTurnText(isPlayerTurn: true);
         eventSystem.enabled = true;
-        gameState = GameState.WaitingForX;
+        gameState = GameState.WaitingForPlayer;
     }
 
     public void SetToAITurn()
     {
         uiController.SetTurnText(isPlayerTurn: false);
         eventSystem.enabled = false;
-        gameState = GameState.WaitingForO;
+        gameState = GameState.WaitingForAI;
         StartCoroutine(WaitForAIMove());
     }
 
@@ -116,7 +118,7 @@ public class GameManager : MonoBehaviour
             }
             if (isAWinningLine)
             {
-                gameState = lastPerformingPlayerTile == TileType.X ? GameState.VictoryX : GameState.VictoryO;
+                gameState = lastPerformingPlayerTile == TileType.Player ? GameState.VictoryPlayer : GameState.VictoryAI;
                 return;
             }
         }
@@ -125,22 +127,23 @@ public class GameManager : MonoBehaviour
             gameState = GameState.NoMoreMoves;
             return;
         }
-        gameState = lastPerformingPlayerTile == TileType.X ?
-            GameState.WaitingForX : GameState.WaitingForO;
+        gameState = lastPerformingPlayerTile == TileType.Player ?
+            GameState.WaitingForPlayer : GameState.WaitingForAI;
     }
     
     public void PlayerMadeMove(TilePositionData xy){
-        board[xy.x, xy.y] = TileType.X;
+        board[xy.x, xy.y] = TileType.Player;
+        lastPerformedMove = new Vector2Int(xy.x, xy.y);
         vacantTiles--;
-        CheckForGameOver(TileType.X, new Vector2Int(xy.x, xy.y));  // Updates gameState.
+        CheckForGameOver(TileType.Player, new Vector2Int(xy.x, xy.y));  // Updates gameState.
         switch (gameState)
         {
             case GameState.NoMoreMoves:
-            case GameState.VictoryO:
-            case GameState.VictoryX:
+            case GameState.VictoryAI:
+            case GameState.VictoryPlayer:
                 OnGameOver();
                 break;
-            case GameState.WaitingForX:
+            case GameState.WaitingForPlayer:
                 SetToAITurn();
                 break;
             default:
@@ -149,20 +152,23 @@ public class GameManager : MonoBehaviour
     }
 
     private IEnumerator WaitForAIMove(){
-        // Vector2Int move = aiLogic.MakeMove(board, vacantTiles, lastPerformingPlayerTile, lastPerformedMove);
+        Vector2Int move = aiLogic.MakeMove(board, vacantTiles, TileType.Player, lastPerformedMove);
+        bool isDebug = true;  // Temp measure.
+        if(isDebug) print(move);
         yield return new WaitForSeconds(1);
-        // print("TODO: AI played: " + move.ToString());
-        // board[move.x, move.y] = TileType.O;
-        // vacantTiles--;
-        // CheckForGameOver(TileType.O, move);  // Updates gameState.
+        uiController.OnAIChoseTile(move);
+        board[move.x, move.y] = TileType.AI;
+        vacantTiles--;
+        CheckForGameOver(TileType.AI, move);  // Updates gameState.
         switch (gameState)
         {
             case GameState.NoMoreMoves:
-            case GameState.VictoryO:
-            case GameState.VictoryX:
+            case GameState.VictoryAI:
+            case GameState.VictoryPlayer:
+                eventSystem.enabled = true;
                 OnGameOver();
                 break;
-            case GameState.WaitingForO:
+            case GameState.WaitingForAI:
                 SetToPlayerTurn();
                 break;
             default:
