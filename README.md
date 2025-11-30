@@ -17,7 +17,7 @@
 <br>
 
 <p>
-  Unity Version: 2022.3.62f3
+  Unity Version: 2022.3.62f3<br>
   Tested on: Unity Editor (Windows)
 </p>
 
